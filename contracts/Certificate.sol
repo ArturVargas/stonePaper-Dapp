@@ -1,9 +1,9 @@
 pragma solidity >=0.5.0 <0.7.0;
 
 contract Certificate {
-    struct Register {
-        uint256 registerId;
-        address registerAddress;
+    struct Certifier {
+        uint256 certifierId;
+        address certifierAddres;
         string orgName;
     }
 
@@ -17,34 +17,34 @@ contract Certificate {
         string hashPhoto;
     }
 
-    event NewRegister(
+    event NewCertifier(
         uint256 certifierId,
         address certifierAddress,
         string _orgName
     );
 
     address public rootUser;
-    uint256 public registerCount;
-    mapping(uint256 => Register) public registers;
+    uint256 public certifierCount;
+    mapping(uint256 => Certifier) public certifiers;
 
     constructor() public {
         rootUser = msg.sender;
     }
 
-    function createRegister(address _registerAddres, string memory _orgName)
+    function createCertifier(address _certifierAddress, string memory _orgName)
         public
         onlyRootUser()
     {
-        registerCount++;
-        registers[registerCount] = Register(
-            registerCount,
-            _registerAddres,
+        certifierCount++;
+        certifiers[certifierCount] = Certifier(
+            certifierCount,
+            _certifierAddress,
             _orgName
         );
-        emit NewRegister(registerCount, _registerAddres, _orgName);
+        emit NewCertifier(certifierCount, _certifierAddress, _orgName);
     }
 
-    function createDocument() public onlyRegister() {
+    function createDocument() public onlyCertifier() {
         // Se crea el documento para certificar a algun usuario.
         // El documento solo se puede crear por el usuario Register.
     }
@@ -57,7 +57,7 @@ contract Certificate {
         _;
     }
 
-    modifier onlyRegister() {
+    modifier onlyCertifier() {
         // la direccion actual debe corresponder a un Certificador
     }
 }
