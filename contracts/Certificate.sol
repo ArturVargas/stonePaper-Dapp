@@ -23,9 +23,22 @@ contract Certificate {
         string _orgName
     );
 
+    event NewCertificated(
+        uint256 docId,
+        address userCertificated,
+        string userName,
+        string userLastNames,
+        string certifiedMatter,
+        string orgName,
+        string hashPhoto
+    );
+
     address public rootUser;
-    uint256 public certifierCount;
     mapping(uint256 => Certifier) public certifiers;
+    mapping(address => Certifier) public certifierAdd;
+    mapping(uint256 => Document) public documents;
+    uint256 certifierCount = 0;
+    uint256 documentCount = 0;
 
     constructor() public {
         rootUser = msg.sender;
@@ -44,9 +57,33 @@ contract Certificate {
         emit NewCertifier(certifierCount, _certifierAddress, _orgName);
     }
 
-    function createDocument() public onlyCertifier() {
-        // Se crea el documento para certificar a algun usuario.
-        // El documento solo se puede crear por el usuario Register.
+    function createDocument(
+        address _userCertificated,
+        string memory _userName,
+        string memory _userLastNames,
+        string memory _certifiedMatter,
+        string memory _hashPhoto
+    ) public onlyCertifier() {
+        documentCount++;
+        string memory _orgName = certifierAdd[msg.sender].orgName;
+        documents[documentCount] = Document(
+            documentCount,
+            _userCertificated,
+            _userName,
+            _userLastNames,
+            _certifiedMatter,
+            _orgName,
+            _hashPhoto
+        );
+        emit NewCertificated(
+            documentCount,
+            _userCertificated,
+            _userName,
+            _userLastNames,
+            _certifiedMatter,
+            _orgName,
+            _hashPhoto
+        );
     }
 
     modifier onlyRootUser() {
