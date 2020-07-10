@@ -1,4 +1,5 @@
 pragma solidity >=0.5.0 <0.7.0;
+pragma experimental ABIEncoderV2;
 
 contract Certificate {
     struct Certifier {
@@ -38,6 +39,7 @@ contract Certificate {
     mapping(address => Certifier) public certifierAdd;
     mapping(uint256 => Document) public documents;
     address[] public certifiersList;
+    Document[] public documentList;
     uint256 certifierCount = 0;
     uint256 documentCount = 0;
 
@@ -78,6 +80,17 @@ contract Certificate {
             _orgName,
             _hashPhoto
         );
+        documentList.push(
+            Document(
+                documentCount,
+                _userCertificated,
+                _userName,
+                _userLastNames,
+                _certifiedMatter,
+                _orgName,
+                _hashPhoto
+            )
+        );
         emit NewCertificated(
             documentCount,
             _userCertificated,
@@ -87,6 +100,31 @@ contract Certificate {
             _orgName,
             _hashPhoto
         );
+    }
+
+    function getCertificates() public view returns (Document[] memory) {
+        return (documentList);
+    }
+
+    function getCertificate(uint256 id)
+        public
+        view
+        returns (
+            uint256,
+            address,
+            string memory
+        )
+    {
+        for (uint256 i = 0; i < documentList.length; i++) {
+            if (id == documentList[i].docId) {
+                return (
+                    documentList[i].docId,
+                    documentList[i].userCertificated,
+                    documentList[i].userName
+                );
+            }
+        }
+        revert("No se encontro el documento");
     }
 
     modifier onlyRootUser() {
