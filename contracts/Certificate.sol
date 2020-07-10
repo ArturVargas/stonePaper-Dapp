@@ -1,9 +1,9 @@
 pragma solidity >=0.5.0 <0.7.0;
 
 contract Certificate {
-    struct Register {
-        uint256 registerId;
-        address registerAddress;
+    struct Certifier {
+        uint256 certifierId;
+        address certifierAddres;
         string orgName;
     }
 
@@ -17,23 +17,93 @@ contract Certificate {
         string hashPhoto;
     }
 
+    event NewCertifier(
+        uint256 certifierId,
+        address certifierAddress,
+        string _orgName
+    );
+
+    event NewCertificated(
+        uint256 docId,
+        address userCertificated,
+        string userName,
+        string userLastNames,
+        string certifiedMatter,
+        string orgName,
+        string hashPhoto
+    );
+
     address public rootUser;
+    mapping(uint256 => Certifier) public certifiers;
+    mapping(address => Certifier) public certifierAdd;
+    mapping(uint256 => Document) public documents;
+    address[] public certifiersList;
+    uint256 certifierCount = 0;
+    uint256 documentCount = 0;
 
     constructor() public {
         rootUser = msg.sender;
     }
 
-    function createRegister(
-        uint256 memory _registerId,
-        address _registerAddres,
-        string memory _orgName
-    ) public onlyRootUser() {
-        // Se crea el usuario que podrá crear certificados.
-        // Estos usuarios solo se pueden crear por el dueño del SC.
+    function createCertifier(address _certifierAddress, string memory _orgName)
+        public
+        onlyRootUser()
+    {
+        certifierCount++;
+        certifiers[certifierCount] = Certifier(
+            certifierCount,
+            _certifierAddress,
+            _orgName
+        );
+        certifiersList.push(_certifierAddress);
+        emit NewCertifier(certifierCount, _certifierAddress, _orgName);
     }
 
-    function createDocument() public onlyRegister() {
-        // Se crea el documento para certificar a algun usuario.
-        // El documento solo se puede crear por el usuario Register.
+    function createDocument(
+        address _userCertificated,
+        string memory _userName,
+        string memory _userLastNames,
+        string memory _certifiedMatter,
+        string memory _hashPhoto
+    ) public {
+        onlyCertifier();
+        documentCount++;
+        string memory _orgName = certifierAdd[msg.sender].orgName;
+        documents[documentCount] = Document(
+            documentCount,
+            _userCertificated,
+            _userName,
+            _userLastNames,
+            _certifiedMatter,
+            _orgName,
+            _hashPhoto
+        );
+        emit NewCertificated(
+            documentCount,
+            _userCertificated,
+            _userName,
+            _userLastNames,
+            _certifiedMatter,
+            _orgName,
+            _hashPhoto
+        );
+    }
+
+    modifier onlyRootUser() {
+        require(
+            msg.sender == rootUser,
+            "Solo el usuario Root puede registrar Certificadores"
+        );
+        _;
+    }
+
+    function onlyCertifier() public view {
+        for (uint256 i = 0; i < certifiersList.length; i++) {
+            if (certifiersList[i] != msg.sender) {
+                revert(
+                    "Solo pueden crear Certificados los Usuarios autorizados"
+                );
+            }
+        }
     }
 }
