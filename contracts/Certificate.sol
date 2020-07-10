@@ -37,6 +37,7 @@ contract Certificate {
     mapping(uint256 => Certifier) public certifiers;
     mapping(address => Certifier) public certifierAdd;
     mapping(uint256 => Document) public documents;
+    address[] public certifiersList;
     uint256 certifierCount = 0;
     uint256 documentCount = 0;
 
@@ -54,6 +55,7 @@ contract Certificate {
             _certifierAddress,
             _orgName
         );
+        certifiersList.push(_certifierAddress);
         emit NewCertifier(certifierCount, _certifierAddress, _orgName);
     }
 
@@ -63,7 +65,8 @@ contract Certificate {
         string memory _userLastNames,
         string memory _certifiedMatter,
         string memory _hashPhoto
-    ) public onlyCertifier() {
+    ) public {
+        onlyCertifier();
         documentCount++;
         string memory _orgName = certifierAdd[msg.sender].orgName;
         documents[documentCount] = Document(
@@ -94,7 +97,13 @@ contract Certificate {
         _;
     }
 
-    modifier onlyCertifier() {
-        // la direccion actual debe corresponder a un Certificador
+    function onlyCertifier() public view {
+        for (uint256 i = 0; i < certifiersList.length; i++) {
+            if (certifiersList[i] != msg.sender) {
+                revert(
+                    "Solo pueden crear Certificados los Usuarios autorizados"
+                );
+            }
+        }
     }
 }
